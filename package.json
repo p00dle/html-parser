@@ -1,0 +1,30 @@
+{
+  "name": "@kksiuda/html-parser",
+  "version": "1.1.0",
+  "private": false,
+  "description": "",
+  "main": "dist/parseHtml.js",
+  "keywords": [],
+  "files": [
+    "dist"
+  ],
+  "author": "Krzysztof Siuda",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/p00dle/html-parser"
+  },
+  "type": "module",
+  "license": "MIT",
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.6",
+    "@types/node": "^20.12.7",
+    "@vitest/coverage-v8": "^4.0.18",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
+  },
+  "scripts": {
+    "check": "tsc --noEmit && biome check --write && vitest --run",
+    "test": "vitest --coverage",
+    "build": "tsc"
+  }
+}
