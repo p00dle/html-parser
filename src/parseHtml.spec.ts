@@ -52,6 +52,14 @@ describe('parseHtml', () => {
 		const node = parseHtml(html);
 		expect(node.toHTML()).toBe(html);
 	});
+	test('can skip nodes by id', () => {
+		const node = parseHtml(validHtml, { skipNodesWithId: ['bob'] });
+		expect(node.select('#bob')).toBeNull();
+	});
+	test('can skip nodes by class', () => {
+		const node = parseHtml(validHtml, { skipNodesWithClasses: ['a1'] });
+		expect(node.select('#bob')).toBeNull();
+	});
 });
 
 const validHtml = `

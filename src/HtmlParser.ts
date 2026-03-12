@@ -7,6 +7,8 @@ import { getTagRegex } from './tagRegex.js';
 export interface HtmlParserOptions {
 	skipNodeTypes?: string[];
 	ignoreAttributes?: string[];
+	skipNodesWithId?: string[];
+	skipNodesWithClasses?: string[];
 }
 
 const tagRegex = /<\/?[a-z][a-z0-9_-]*/g;
@@ -25,27 +27,32 @@ export class HtmlParser {
 	private currentTagIsClosed: boolean = true;
 	private currentNodeIndex: number = 0;
 	private index: number = 0;
-	private skipTags: string[] = [];
+	private skipTags: Record<string, boolean> = {};
 	private ignoreAttributes: Record<string, boolean> = {};
-
+	private skipIds: Record<string, boolean> = {};
+	private skipClasses: Record<string, boolean> = {};
 	constructor(
 		private html: string,
 		options: HtmlParserOptions = defaultHtmlParserOptions,
 	) {
-		if (
-			options &&
-			'skipNodeTypes' in options &&
-			Array.isArray(options.skipNodeTypes)
-		) {
-			this.skipTags = options.skipNodeTypes;
+		if (Array.isArray(options.skipNodeTypes)) {
+			for (const tag of options.skipNodeTypes) {
+				this.skipTags[tag] = true;
+			}
 		}
-		if (
-			options &&
-			'ignoreAttributes' in options &&
-			Array.isArray(options.ignoreAttributes)
-		) {
+		if (Array.isArray(options.ignoreAttributes)) {
 			for (const attr of options.ignoreAttributes) {
 				this.ignoreAttributes[attr] = true;
+			}
+		}
+		if (Array.isArray(options.skipNodesWithClasses)) {
+			for (const className of options.skipNodesWithClasses) {
+				this.skipClasses[className] = true;
+			}
+		}
+		if (Array.isArray(options.skipNodesWithId)) {
+			for (const id of options.skipNodesWithId) {
+				this.skipIds[id] = true;
 			}
 		}
 	}
@@ -74,7 +81,7 @@ export class HtmlParser {
 			this.exitNode();
 			return true;
 		}
-		if (this.shouldSkipNode()) return this.skipNode();
+		if (this.skipTags[this.currentTag]) return this.skipNode();
 
 		this.enterNode();
 
@@ -195,9 +202,6 @@ export class HtmlParser {
 		return true;
 	}
 
-	private shouldSkipNode(): boolean {
-		return this.skipTags.includes(this.currentTag);
-	}
 	private setAttrs(): boolean {
 		const endIndex = this.html.indexOf('>', this.index);
 		if (endIndex < 0) return false;
@@ -249,6 +253,12 @@ export class HtmlParser {
 			}
 		}
 		this.index = endIndex + 1;
+		if (
+			(this.currentNode?.id && this.skipIds[this.currentNode.id]) ||
+			this.currentNode?.classes.some((className) => this.skipClasses[className])
+		) {
+			this.abortNode();
+		}
 		return true;
 	}
 
@@ -263,6 +273,13 @@ export class HtmlParser {
 	private setError(errorMessage: string): false {
 		this.htmlNodes[0] = makeErrorHtmlNode(errorMessage);
 		return false;
+	}
+
+	private abortNode(): boolean {
+		this.nodes.length = this.nodes.length - 1;
+		if (!this.skipNode()) return false;
+		this.exitNode();
+		return true;
 	}
 
 	private skipNode(): boolean {
