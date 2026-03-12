@@ -14,6 +14,9 @@ export class ParserNode {
 		public isTextNode: boolean = false,
 	) {
 		if (parent !== null) {
+			if (!this.allNodesRef[parent]) {
+				console.log(parent, this);
+			}
 			this.allNodesRef[parent].addChild(this.index);
 		}
 	}
@@ -46,6 +49,7 @@ export class ParserNode {
 
 	public addTextContent(text: string) {
 		const index = this.allNodesRef.length;
+		if (text.trim().length === 0) return;
 		const textNode = new ParserNode(
 			'',
 			index,
@@ -55,7 +59,6 @@ export class ParserNode {
 			true,
 		);
 		this.allNodesRef.push(textNode);
-		// this.children.push(index);
 		textNode.textContent = text;
 	}
 }
