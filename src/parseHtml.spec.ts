@@ -55,10 +55,12 @@ describe('parseHtml', () => {
 	test('can skip nodes by id', () => {
 		const node = parseHtml(validHtml, { skipNodesWithId: ['bob'] });
 		expect(node.select('#bob')).toBeNull();
+		expect(node.selectAll('.foo')).toHaveLength(1);
 	});
 	test('can skip nodes by class', () => {
 		const node = parseHtml(validHtml, { skipNodesWithClasses: ['a1'] });
 		expect(node.select('#bob')).toBeNull();
+		expect(node.selectAll('.foo')).toHaveLength(1);
 	});
 });
 
@@ -77,6 +79,7 @@ const validHtml = `
     <div id="bob" class="a1 a2 a3">
       <span class="span-class">hello</span>
     </div>
+		<article class="foo"></article>
     <script></script>
     <script type=defer>
       const foo = true;

@@ -87,6 +87,17 @@ export class HtmlParser {
 
 		if (!this.setAttrs()) return false;
 
+		if (
+			(this.currentNode?.id && this.skipIds[this.currentNode.id]) ||
+			this.currentNode?.classes.some((className) => this.skipClasses[className])
+		) {
+			this.skipNode();
+			this.exitNode();
+			this.currentNode.children = this.currentNode.children.filter(
+				(n) => n !== this.currentNodeIndex,
+			);
+		}
+
 		if (this.isStyleOrScript()) {
 			const result = this.parseStyleOrScript();
 			this.exitNode();
@@ -253,12 +264,7 @@ export class HtmlParser {
 			}
 		}
 		this.index = endIndex + 1;
-		if (
-			(this.currentNode?.id && this.skipIds[this.currentNode.id]) ||
-			this.currentNode?.classes.some((className) => this.skipClasses[className])
-		) {
-			this.abortNode();
-		}
+
 		return true;
 	}
 
@@ -273,13 +279,6 @@ export class HtmlParser {
 	private setError(errorMessage: string): false {
 		this.htmlNodes[0] = makeErrorHtmlNode(errorMessage);
 		return false;
-	}
-
-	private abortNode(): boolean {
-		this.nodes.length = this.nodes.length - 1;
-		if (!this.skipNode()) return false;
-		this.exitNode();
-		return true;
 	}
 
 	private skipNode(): boolean {
